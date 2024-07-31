@@ -233,7 +233,11 @@ require('lazy').setup({
   --
   -- Use `opts = {}` to force a plugin to be loaded.
   --
-
+  {
+    'vhyrro/luarocks.nvim',
+    priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
+    config = true,
+  },
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   --    require('gitsigns').setup({ ... })
@@ -629,7 +633,8 @@ require('lazy').setup({
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
-        rust_analyzer = {},
+        prettierd = {},
+        --rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -686,10 +691,39 @@ require('lazy').setup({
     end,
   },
 
-  { -- Rust
+  {
     'mrcjkb/rustaceanvim',
-    version = '^4', -- Recommended
-    lazy = false, -- This plugin is already lazy
+    dependencies = 'neovim/nvim-lspconfig',
+    ft = { 'rust' },
+    opts = {
+      server = {
+        settings = {
+          ['rust-analyzer'] = {
+            cargo = {
+              allFeatures = true,
+              loadOutDirsFromCheck = true,
+              runBuildScripts = true,
+            },
+            checkOnSave = { -- Add clippy lints for Rust.
+              allFeatures = true,
+              command = 'clippy',
+              extraArgs = { '--no-deps' },
+            },
+            procMacro = {
+              enable = true,
+              ignored = {
+                ['async-trait'] = { 'async_trait' },
+                ['napi-derive'] = { 'napi' },
+                ['async-recursion'] = { 'async_recursion' },
+              },
+            },
+          },
+        },
+      },
+    },
+    config = function(_, opts)
+      vim.g.rustaceanvim = vim.tbl_deep_extend('force', {}, opts or {})
+    end,
   },
 
   { -- Autoformat
@@ -913,7 +947,7 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
